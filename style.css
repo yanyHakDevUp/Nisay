@@ -1397,5 +1397,77 @@ body {
   .yt-results {
     max-height: 220px;
   }
+
+  /* Compact Modal design to fit mobile viewport */
+  .modal-overlay {
+    padding: 10px;
+    align-items: flex-start;
+  }
+  .modal-card {
+    margin: 15px auto;
+    max-width: 100%;
+    border-radius: var(--radius-md);
+  }
+  .modal-card__header {
+    padding: 12px 14px;
+  }
+  .modal-card__header h3 {
+    font-size: 0.88rem;
+  }
+  .modal-card__body {
+    padding: 14px;
+    gap: 10px;
+  }
+  .form-group {
+    gap: 4px;
+  }
+  .form-group label {
+    font-size: 0.65rem;
+  }
+  .form-group textarea, 
+  .form-group input[type="text"] {
+    padding: 8px 10px;
+    font-size: 0.76rem;
+  }
+  .upload-dropzone {
+    min-height: 80px;
+    padding: 12px;
+  }
+  .upload-dropzone__prompt span {
+    font-size: 0.72rem;
+  }
+  .upload-dropzone__prompt .upload-dropzone__sub {
+    font-size: 0.58rem;
+  }
+  .upload-dropzone__preview {
+    max-height: 80px;
+  }
+  .share-result {
+    padding-top: 10px;
+    gap: 4px;
+  }
+  .share-result label {
+    font-size: 0.65rem;
+  }
+  .share-result__input-wrap input {
+    font-size: 0.76rem;
+    padding: 8px 10px;
+  }
+  .share-social {
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .share-social__label {
+    font-size: 0.65rem;
+  }
+  .share-social__btn {
+    padding: 5px 10px;
+    font-size: 0.72rem;
+    gap: 4px;
+  }
+  .share-social__btn svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 
