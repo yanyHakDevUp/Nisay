@@ -128,6 +128,9 @@
   const messageText = $('messageText');
   const inputYtUrl = $('inputYtUrl');
   const karaokeContainer = $('karaoke');
+  const ytBarInput = $('ytBarInput');
+  const ytBarPlayBtn = $('ytBarPlayBtn');
+  const ytBarClearBtn = $('ytBarClearBtn');
 
   /* ----------------------------------------------------------------------
      STATE
@@ -163,6 +166,8 @@
     initThemes();
     initStickers();
     initSharing();
+    initYoutubeBar();
+    parseSharedLink();
 
     // Reveal the app with a graceful loading screen transition
     const minDelay = new Promise((res) => setTimeout(res, 1200));
@@ -975,8 +980,9 @@
     if (imgSrc) params.push('img=' + encodeURIComponent(imgSrc));
     if (ytId) params.push('yt=' + encodeURIComponent(ytId));
 
-    const hash = params.join('&');
-    const fullLink = baseLink + (hash ? '#' + hash : '');
+    // Use ? query params (NOT # hash) so URL shorteners preserve all data!
+    const query = params.join('&');
+    const fullLink = baseLink + (query ? '?' + query : '');
 
     // Fallback: show the long URL first so something is always copyable
     resultLink.value = fullLink;
@@ -1022,14 +1028,15 @@
   }
 
   function parseSharedLink() {
-    const hash = window.location.hash.substring(1);
-    if (!hash) return;
+    // Read from ?query params (NOT #hash) — URL shorteners preserve query params!
+    const search = window.location.search.substring(1);
+    if (!search) return;
 
     const params = {};
-    hash.split('&').forEach(part => {
-      const kv = part.split('=');
-      if (kv[0] && kv[1]) {
-        params[kv[0]] = decodeURIComponent(kv[1]);
+    search.split('&').forEach(part => {
+      const idx = part.indexOf('=');
+      if (idx > 0) {
+        params[part.substring(0, idx)] = decodeURIComponent(part.substring(idx + 1));
       }
     });
 
@@ -1039,24 +1046,81 @@
     }
     if (params.img) {
       coverImg.src = params.img;
-      artEl.style.animation = 'none'; // Keep custom artwork upright and stable
+      artEl.style.animation = 'none';
     }
     if (params.yt) {
-      useYt = true;
-      // Hide lyrics container
-      if (karaokeContainer) {
-        karaokeContainer.classList.add('is-hidden');
-      }
-      initialYtVideoId = params.yt;
-      // Clear audio source to avoid dual playback
-      audio.src = '';
-      audio.load();
+      activateYoutubeMode(params.yt);
+    }
+  }
 
-      if (window.ytApiReady) {
-        initYtPlayer(initialYtVideoId);
-      } else {
-        loadYoutubeIframeApi();
+  /* ----------------------------------------------------------------------
+     YOUTUBE BAR — Main page YouTube URL input
+  ---------------------------------------------------------------------- */
+  function initYoutubeBar() {
+    if (!ytBarPlayBtn || !ytBarInput) return;
+
+    function tryPlay() {
+      const id = getYoutubeId(ytBarInput.value.trim());
+      if (!id) {
+        showToast('URL YouTube មិនត្រឹមត្រូវ — សូមបិទភ្ជាប់ម្ដងទៀត 🔗');
+        return;
       }
+      activateYoutubeMode(id);
+      // Auto-fill the sharing modal's YouTube field
+      if (inputYtUrl) inputYtUrl.value = ytBarInput.value.trim();
+      ytBarClearBtn.style.display = 'flex';
+      ytBarPlayBtn.textContent = '⏸ ផ្អាក';
+    }
+
+    ytBarPlayBtn.addEventListener('click', () => {
+      if (useYt && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+        const state = ytPlayer.getPlayerState();
+        if (state === 1) {
+          ytPlayer.pauseVideo();
+          ytBarPlayBtn.textContent = '▶ ចាក់';
+          return;
+        }
+      }
+      tryPlay();
+    });
+
+    ytBarInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') tryPlay();
+    });
+
+    ytBarClearBtn.addEventListener('click', () => {
+      // Reset back to Nisay
+      useYt = false;
+      if (ytPlayer && typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo();
+      ytPlayer = null;
+      stopYtProgressLoop();
+      ytBarInput.value = '';
+      if (inputYtUrl) inputYtUrl.value = '';
+      ytBarClearBtn.style.display = 'none';
+      ytBarPlayBtn.textContent = '▶ ចាក់';
+      if (karaokeContainer) karaokeContainer.classList.remove('is-hidden');
+      audio.src = playlist[currentSongIndex].src;
+      audio.load();
+      loadSong(currentSongIndex);
+      showToast('ត្រឡប់ទៅ និស្ស័យ 💗');
+    });
+  }
+
+  function activateYoutubeMode(videoId) {
+    useYt = true;
+    initialYtVideoId = videoId;
+    if (karaokeContainer) karaokeContainer.classList.add('is-hidden');
+    // Stop the HTML audio to prevent dual playback
+    audio.pause();
+    audio.src = '';
+    audio.load();
+    // Init or swap the iframe player
+    if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+      ytPlayer.loadVideoById(videoId);
+    } else if (window.ytApiReady) {
+      initYtPlayer(videoId);
+    } else {
+      loadYoutubeIframeApi();
     }
   }
 
