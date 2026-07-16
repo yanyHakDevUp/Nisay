@@ -1043,9 +1043,18 @@
       ytResults.style.display = 'block';
       ytResults.innerHTML = '<div class="yt-results-loading">🔍 កំពុងស្វែងរក...</div>';
 
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&videoCategoryId=10&maxResults=8&key=${YT_API_KEY}`;
+      // General video search without videoCategoryId restriction for maximum success rate
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=8&key=${YT_API_KEY}`;
+      
       fetch(url)
-        .then(r => r.json())
+        .then(async r => {
+          if (!r.ok) {
+            const errData = await r.json().catch(() => ({}));
+            const errMsg = (errData.error && errData.error.message) || `HTTP error ${r.status}`;
+            throw new Error(errMsg);
+          }
+          return r.json();
+        })
         .then(data => {
           if (!data.items || data.items.length === 0) {
             ytResults.innerHTML = '<div class="yt-results-loading">រកមិនឃើញ 😔 សូមព្យាយាមម្ដងទៀត</div>';
@@ -1053,8 +1062,12 @@
           }
           renderResults(data.items);
         })
-        .catch(() => {
-          ytResults.innerHTML = '<div class="yt-results-loading">មានបញ្ហា — សូមពិនិត្យ Internet 😅</div>';
+        .catch((err) => {
+          console.error('YouTube search failed:', err);
+          ytResults.innerHTML = `<div class="yt-results-loading" style="color: #ff6b6b; padding: 16px;">
+            <p>ស្វែងរកមិនបានជោគជ័យ ៖</p>
+            <p style="font-size: 0.72rem; margin-top: 4px; opacity: 0.85; word-break: break-word;">${escapeHtml(err.message)}</p>
+          </div>`;
         });
     }
 
