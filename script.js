@@ -764,14 +764,14 @@
       }
     });
 
-    // 4. Generate Link with Compressed Image
+    // 4. Generate Link with Uploaded/Compressed Image
     generateLinkBtn.addEventListener('click', () => {
       const msgText = inputMessage.value.trim();
 
       if (uploadedImageSrc) {
-        showToast('កំពុងបង្រួមរូបភាព... ⏳');
-        compressImage(uploadedImageSrc, (compressedImg) => {
-          generateAndDisplayLink(msgText, compressedImg);
+        showToast('កំពុងបង្ហោះរូបភាពគូស្នេហ៍... ⏳');
+        uploadImage(uploadedImageSrc, (imgUrl) => {
+          generateAndDisplayLink(msgText, imgUrl);
         });
       } else {
         generateAndDisplayLink(msgText, '');
@@ -797,12 +797,11 @@
         });
     });
   }
-
-  function compressImage(dataUrl, callback) {
+  function uploadImage(dataUrl, callback) {
     const img = new Image();
     img.onload = function() {
       const canvas = document.createElement('canvas');
-      const maxDim = 120; // 120x120 is perfect for card display and keeps base64 string extremely short
+      const maxDim = 300; // 300x300 looks beautiful and crisp as album cover
       let w = img.width;
       let h = img.height;
 
@@ -824,10 +823,53 @@
         maxDim
       );
 
-      // Low quality JPEG (0.45) to ensure it stays well under URL length limits
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.45);
-      callback(compressedDataUrl);
+      // Convert to Blob and upload to Pixeldrain
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          fallbackToBase64();
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', blob, 'couple.jpg');
+
+        fetch('https://pixeldrain.com/api/file', {
+          method: 'POST',
+          body: formData
+        })
+        .then(res => {
+          if (!res.ok) throw new Error('Upload failed');
+          return res.json();
+        })
+        .then(data => {
+          if (data.success && data.id) {
+            const directUrl = `https://pixeldrain.com/api/file/${data.id}`;
+            callback(directUrl);
+          } else {
+            fallbackToBase64();
+          }
+        })
+        .catch(() => {
+          fallbackToBase64();
+        });
+      }, 'image/jpeg', 0.82); // High quality JPEG!
+
+      function fallbackToBase64() {
+        // Fallback: compress down to a very small base64 string (90x90, 0.38 quality) to fit URL limits
+        const smallCanvas = document.createElement('canvas');
+        smallCanvas.width = 90;
+        smallCanvas.height = 90;
+        const smallCtx = smallCanvas.getContext('2d');
+        smallCtx.drawImage(canvas, 0, 0, 90, 90);
+        const base64Str = smallCanvas.toDataURL('image/jpeg', 0.38);
+        callback(base64Str);
+      }
     };
+
+    img.onerror = function() {
+      callback('');
+    };
+
     img.src = dataUrl;
   }
 
