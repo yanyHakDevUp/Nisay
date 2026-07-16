@@ -802,7 +802,7 @@
     const img = new Image();
     img.onload = function() {
       const canvas = document.createElement('canvas');
-      const maxDim = 150; // Perfect size for a compact sharing URL hash!
+      const maxDim = 120; // 120x120 is perfect for card display and keeps base64 string extremely short
       let w = img.width;
       let h = img.height;
 
@@ -824,11 +824,36 @@
         maxDim
       );
 
-      // Low quality JPEG to keep URL string very short
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.55);
+      // Low quality JPEG (0.45) to ensure it stays well under URL length limits
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.45);
       callback(compressedDataUrl);
     };
     img.src = dataUrl;
+  }
+
+  function shortenUrlWithJsonp(longUrl, callback) {
+    const callbackName = 'isgd_callback_' + Math.floor(Math.random() * 1000000);
+    window[callbackName] = function(data) {
+      delete window[callbackName];
+      const scriptNode = document.getElementById(callbackName);
+      if (scriptNode) scriptNode.remove();
+      
+      if (data.shorturl) {
+        callback(data.shorturl);
+      } else {
+        callback(null);
+      }
+    };
+
+    const script = document.createElement('script');
+    script.id = callbackName;
+    script.src = `https://is.gd/create.php?format=json&url=${encodeURIComponent(longUrl)}&callback=${callbackName}`;
+    script.onerror = function() {
+      delete window[callbackName];
+      script.remove();
+      callback(null);
+    };
+    document.body.appendChild(script);
   }
 
   function generateAndDisplayLink(msg, imgSrc) {
@@ -840,9 +865,19 @@
     const hash = params.join('&');
     const fullLink = baseLink + (hash ? '#' + hash : '');
     
+    // Fallback: show the long URL first so something is always copyable
     resultLink.value = fullLink;
     shareResultWrap.style.display = 'block';
-    showToast('បង្កើតតំណភ្ជាប់រួចរាល់! 🎉');
+
+    showToast('កំពុងបង្កើតតំណភ្ជាប់ខ្លី... 🔗');
+    shortenUrlWithJsonp(fullLink, (shortUrl) => {
+      if (shortUrl) {
+        resultLink.value = shortUrl;
+        showToast('បង្កើតតំណភ្ជាប់ខ្លីជោគជ័យ! 🎉');
+      } else {
+        showToast('បង្កើតតំណភ្ជាប់វែងជោគជ័យ! 🎉');
+      }
+    });
   }
 
   function parseSharedLink() {
