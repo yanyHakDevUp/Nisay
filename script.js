@@ -1084,6 +1084,33 @@
         durationTimeEl.textContent = formatTime(ytPlayer.getDuration());
       }
     }, 1000);
+
+    // Dynamically fetch the YouTube video title & author via oEmbed (no API key needed)
+    if (initialYtVideoId) {
+      const oEmbedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${initialYtVideoId}&format=json`;
+      fetch(oEmbedUrl)
+        .then(res => {
+          if (!res.ok) throw new Error('oEmbed failed');
+          return res.json();
+        })
+        .then(data => {
+          const titleEl = document.querySelector('.song-info__title');
+          const artistEl = document.querySelector('.song-info__artist');
+          if (titleEl && data.title) {
+            titleEl.innerHTML = escapeHtml(data.title);
+          }
+          if (artistEl && data.author_name) {
+            artistEl.textContent = data.author_name;
+          }
+          // Also update the browser tab title
+          if (data.title) {
+            document.title = `${data.title} 💗`;
+          }
+        })
+        .catch(() => {
+          // Silently fall back — title stays as default
+        });
+    }
   }
 
   function onYtPlayerStateChange(event) {
