@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="km" data-theme="noir">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>ស្រលាញ់គេម្នាក់ឯងដែរមែន? 💗</title>
+<meta name="description" content="ស្តាប់បទចម្រៀងស្នេហ៍ខ្មែរ ជាមួយអក្សរចម្រៀងបទចម្រៀងបែបខារ៉ាអូខេ — ស្រលាញ់គេម្នាក់ឯងដែរមែន?" />
+
+<!-- Fonts: Moul for romantic Khmer display, Battambang for Khmer body/lyrics, Poppins for UI -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Moul&family=Battambang:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===================== LOADING SCREEN ===================== -->
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader__heart">
+      <svg viewBox="0 0 32 29" class="loader__heart-svg">
+        <path d="M16 28.5C16 28.5 1 19.5 1 9.4C1 4.2 5 1 9.3 1C12.4 1 14.8 2.7 16 5.4C17.2 2.7 19.6 1 22.7 1C27 1 31 4.2 31 9.4C31 19.5 16 28.5 16 28.5Z"/>
+      </svg>
+    </div>
+    <p class="loader__text">កំពុងរៀបចំបទចម្រៀង...</p>
+  </div>
+
+  <!-- ===================== AMBIENT BACKGROUND ===================== -->
+  <div class="bg" aria-hidden="true">
+    <div class="bg__gradient"></div>
+    <div class="bg__stars" id="stars"></div>
+    <div class="bg__hearts" id="floatingHearts"></div>
+    <div class="bg__glow bg__glow--1"></div>
+    <div class="bg__glow bg__glow--2"></div>
+  </div>
+
+  <!-- ===================== MAIN APP ===================== -->
+  <main class="app" id="app">
+
+    <header class="app__header">
+      <h1 class="app__title">ស្រលាញ់គេម្នាក់ឯងដែរមែន? <span class="heart-emoji">💗</span></h1>
+      <p class="app__subtitle">ស្តាប់ហើយស្រម៉ៃផង ស្រម៉ៃជាមួយYour crush Not សង្សារគេ! XD }_{</p>
+    </header>
+
+    <!-- Theme Switcher -->
+    <div class="theme-switcher" aria-label="Theme selector">
+      <button class="theme-btn theme-btn--cyber" data-theme="cyber" title="Midnight Cyberpunk">🌌 Cyber</button>
+      <button class="theme-btn theme-btn--acid" data-theme="acid" title="Acid Candy">🧪 Acid</button>
+      <button class="theme-btn theme-btn--lavender" data-theme="lavender" title="Lavender Dream">🍑 Dream</button>
+      <button class="theme-btn theme-btn--noir active" data-theme="noir" title="Vampire Noir">🩸 Noir</button>
+    </div>
+
+    <section class="player" aria-label="Music player">
+
+      <!-- Shared Message Banner -->
+      <div class="message-banner" id="messageBanner" style="display: none;">
+        <span class="message-banner__icon">💗</span>
+        <div class="message-banner__content">
+          <span class="message-banner__label">សារស្នេហ៍ផ្ញើជូនអ្នក៖</span>
+          <span class="message-banner__text" id="messageText">បងស្រលាញ់អូនខ្លាំងណាស់!</span>
+        </div>
+      </div>
+
+      <!-- Interactive Stickers -->
+      <div class="sticker-container">
+        <span class="sticker sticker--vibe" id="stickerVibe">✨ 100% VIBE</span>
+        <span class="sticker sticker--love" id="stickerLove">💗 និស្ស័យ</span>
+        <span class="sticker sticker--artist" id="stickerArtist">🎵 MANN DOSS</span>
+      </div>
+
+      <!-- ---------- Album Art ---------- -->
+      <div class="player__art-wrap">
+        <canvas class="wave-canvas" id="waveCanvas" width="300" height="300" aria-hidden="true"></canvas>
+        <div class="art-ring" id="artRing">
+          <div class="art" id="art">
+            <img src="assets/cover.png" alt="ស្រមោលអាល់ប៊ុមចម្រៀង និស្ស័យ" class="art__img" id="coverImg" />
+            <div class="art__disc-hole"></div>
+          </div>
+        </div>
+        <div class="status-pill" id="statusPill">
+          <span class="status-pill__dot" id="statusDot"></span>
+          <span id="statusText">ផ្អាក</span>
+        </div>
+      </div>
+
+      <!-- ---------- Song Info ---------- -->
+      <div class="song-info">
+        <h2 class="song-info__title">My Baby <span class="heart-emoji heart-emoji--sm">💗</span></h2>
+        <p class="song-info__artist">Khmer Romantic Song</p>
+      </div>
+
+      <!-- ---------- Karaoke Lyrics ---------- -->
+      <div class="karaoke" id="karaoke" aria-live="polite">
+        <p class="karaoke__prev" id="lyricPrev">&nbsp;</p>
+        <p class="karaoke__current" id="lyricCurrent">
+          <span class="karaoke-line">
+            <span class="karaoke-base" id="lyricBase">ចុចប៊ូតុងចាក់ ដើម្បីចាប់ផ្តើមស្តាប់បទចម្រៀង 🎵</span>
+            <span class="karaoke-fill" id="lyricFill" style="--progress:0">ចុចប៊ូតុងចាក់ ដើម្បីចាប់ផ្តើមស្តាប់បទចម្រៀង 🎵</span>
+          </span>
+        </p>
+        <p class="karaoke__next" id="lyricNext">&nbsp;</p>
+      </div>
+
+      <!-- ---------- Progress Bar ---------- -->
+      <div class="progress">
+        <span class="progress__time" id="currentTime">0:00</span>
+        <div class="progress__track" id="progressTrack">
+          <div class="progress__buffered" id="progressBuffered"></div>
+          <div class="progress__fill" id="progressFill"></div>
+          <div class="progress__handle" id="progressHandle"></div>
+          <input type="range" id="seekBar" class="progress__input" min="0" max="100" value="0" step="0.1" aria-label="ស្វែងរកទីតាំងចម្រៀង" />
+        </div>
+        <span class="progress__time" id="durationTime">0:00</span>
+      </div>
+
+      <!-- ---------- Controls ---------- -->
+      <div class="controls">
+        <button class="ctrl-btn ctrl-btn--shuffle" id="shuffleBtn" title="ចាក់ចៃដន្យ" aria-label="Shuffle">
+          <svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+        </button>
+
+        <button class="ctrl-btn ctrl-btn--prev" id="prevBtn" title="បទមុន" aria-label="Previous song">
+          <svg viewBox="0 0 24 24"><path d="M6 6v12M18 6l-9 6 9 6V6z"/></svg>
+        </button>
+
+        <button class="ctrl-btn ctrl-btn--play" id="playBtn" title="ចាក់ / ផ្អាក" aria-label="Play or pause">
+          <svg class="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg class="icon-pause" viewBox="0 0 24 24" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+        </button>
+
+        <button class="ctrl-btn ctrl-btn--next" id="nextBtn" title="បទបន្ទាប់" aria-label="Next song">
+          <svg viewBox="0 0 24 24"><path d="M18 6v12M6 6l9 6-9 6V6z"/></svg>
+        </button>
+
+        <button class="ctrl-btn ctrl-btn--repeat" id="repeatBtn" title="ចាក់ដដែលៗ" aria-label="Repeat">
+          <svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        </button>
+      </div>
+
+      <!-- ---------- Volume ---------- -->
+      <div class="volume">
+        <button class="volume__icon" id="muteBtn" aria-label="Mute / unmute">
+          <svg class="icon-vol-on" viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>
+          <svg class="icon-vol-off" viewBox="0 0 24 24" style="display:none"><path d="M4 9v6h4l5 5V4L8 9H4z"/><path d="M17 9l4 6M21 9l-4 6"/></svg>
+        </button>
+        <input type="range" id="volumeBar" class="volume__input" min="0" max="100" value="80" aria-label="សំឡេង" />
+      </div>
+
+      <!-- Share Trigger Button -->
+      <div class="share-trigger-wrap">
+        <button class="share-trigger-btn" id="shareTriggerBtn" title="បង្កើតតំណភ្ជាប់ចែករំលែក">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          ចុចដើម្បីផ្ញើរទៅកាន់មនុស្សជាទីស្រលាញ់របស់អ្នក 💗
+        </button>
+      </div>
+
+    </section>
+
+    <footer class="app__footer">
+      <p>អត់សង្សារក៌ស្តាប់បានដែរ<:💗</p>
+    </footer>
+  </main>
+
+  <!-- Hidden audio element — replace assets/song.mp3 with your own track -->
+  <audio id="audio" src="assets/song.m4a" preload="metadata"></audio>
+
+  <!-- Toast for missing-asset notices -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Share Modal Dialog -->
+  <div class="modal-overlay" id="shareModal" aria-hidden="true">
+    <div class="modal-card">
+      <header class="modal-card__header">
+        <h3>បង្កើតតំណភ្ជាប់ចែករំលែក 💗</h3>
+        <button class="modal-card__close" id="modalCloseBtn" aria-label="Close modal">&times;</button>
+      </header>
+      <div class="modal-card__body">
+        <div class="form-group">
+          <label for="inputMessage">សារស្នេហ៍ផ្ញើជូន / Your Love Message</label>
+          <textarea id="inputMessage" placeholder="សរសេរសារផ្អែមល្ហែមនៅទីនេះ... (ឧទាហរណ៍៖ បងស្រលាញ់អូនខ្លាំងណាស់!)" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>រូបថតគូស្នេហ៍ / Couple Photo</label>
+          <div class="upload-dropzone" id="uploadZone">
+            <input type="file" id="inputFile" accept="image/*" class="upload-dropzone__input" />
+            <div class="upload-dropzone__prompt" id="uploadPrompt">
+              <span>📷 ចុច ឬ ទម្លាក់រូបថតគូស្នេហ៍មកទីនេះ</span>
+              <span class="upload-dropzone__sub">នឹងត្រូវបង្រួមស្វ័យប្រវត្ត ដើម្បីងាយស្រួលចែករំលែក</span>
+            </div>
+            <img id="uploadPreview" class="upload-dropzone__preview" style="display: none;" alt="Preview" />
+          </div>
+        </div>
+        
+        <button class="btn-primary" id="generateLinkBtn">បង្កើតតំណភ្ជាប់ (Generate Link)</button>
+        
+        <div class="share-result" id="shareResultWrap" style="display: none;">
+          <label for="resultLink">តំណភ្ជាប់របស់អ្នក (ចម្លងផ្ញើទៅកាន់ Crush)</label>
+          <div class="share-result__input-wrap">
+            <input type="text" id="resultLink" readonly />
+            <button class="btn-copy" id="copyLinkBtn">ចម្លង (Copy)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
