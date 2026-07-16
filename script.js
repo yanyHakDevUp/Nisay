@@ -975,6 +975,132 @@
     document.body.appendChild(script);
   }
 
+  const YT_API_KEY = 'AIzaSyAUYRvOU_HwleqBbF_DyM9gtl1KlN_SBBk';
+
+  function initYoutubeBar() {
+    if (!ytBarPlayBtn || !ytBarInput) return;
+
+    const ytResults = $('ytResults');
+    let searchTimeout = null;
+    let currentPlayingId = null;
+
+    // --- Smart input: detect URL vs search query ---
+    function handleSearch() {
+      const val = ytBarInput.value.trim();
+      if (!val) { closeResults(); return; }
+
+      const urlId = getYoutubeId(val);
+      if (urlId) {
+        // Direct URL pasted — play immediately
+        closeResults();
+        playVideoId(urlId, val);
+      } else {
+        // Search query — call YouTube API
+        doSearch(val);
+      }
+    }
+
+    ytBarPlayBtn.addEventListener('click', handleSearch);
+    ytBarInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { handleSearch(); return; }
+    });
+
+    // Live search as user types (debounced 500ms)
+    ytBarInput.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      const val = ytBarInput.value.trim();
+      if (!val) { closeResults(); return; }
+      if (getYoutubeId(val)) return; // URL — don't search
+      searchTimeout = setTimeout(() => doSearch(val), 500);
+    });
+
+    // Close results when clicking outside
+    document.addEventListener('click', (e) => {
+      const wrap = $('ytSearchWrap');
+      if (wrap && !wrap.contains(e.target)) closeResults();
+    });
+
+    ytBarClearBtn.addEventListener('click', () => {
+      useYt = false;
+      if (ytPlayer && typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo();
+      ytPlayer = null;
+      currentPlayingId = null;
+      stopYtProgressLoop();
+      ytBarInput.value = '';
+      if (inputYtUrl) inputYtUrl.value = '';
+      ytBarClearBtn.style.display = 'none';
+      ytBarPlayBtn.textContent = '🔍 ស្វែងរក';
+      if (karaokeContainer) karaokeContainer.classList.remove('is-hidden');
+      closeResults();
+      audio.src = playlist[currentSongIndex].src;
+      audio.load();
+      loadSong(currentSongIndex);
+      showToast('ត្រឡប់ទៅ និស្ស័យ 💗');
+    });
+
+    function doSearch(query) {
+      if (!ytResults) return;
+      ytResults.style.display = 'block';
+      ytResults.innerHTML = '<div class="yt-results-loading">🔍 កំពុងស្វែងរក...</div>';
+
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&videoCategoryId=10&maxResults=8&key=${YT_API_KEY}`;
+      fetch(url)
+        .then(r => r.json())
+        .then(data => {
+          if (!data.items || data.items.length === 0) {
+            ytResults.innerHTML = '<div class="yt-results-loading">រកមិនឃើញ 😔 សូមព្យាយាមម្ដងទៀត</div>';
+            return;
+          }
+          renderResults(data.items);
+        })
+        .catch(() => {
+          ytResults.innerHTML = '<div class="yt-results-loading">មានបញ្ហា — សូមពិនិត្យ Internet 😅</div>';
+        });
+    }
+
+    function renderResults(items) {
+      if (!ytResults) return;
+      ytResults.innerHTML = '';
+      items.forEach(item => {
+        const videoId = item.id.videoId;
+        const title = item.snippet.title;
+        const channel = item.snippet.channelTitle;
+        const thumb = item.snippet.thumbnails.medium
+          ? item.snippet.thumbnails.medium.url
+          : item.snippet.thumbnails.default.url;
+
+        const el = document.createElement('div');
+        el.className = 'yt-result-item' + (videoId === currentPlayingId ? ' is-playing' : '');
+        el.innerHTML = `
+          <img class="yt-result-thumb" src="${thumb}" alt="" loading="lazy" />
+          <div class="yt-result-info">
+            <div class="yt-result-title">${escapeHtml(title)}</div>
+            <div class="yt-result-channel">${escapeHtml(channel)}</div>
+          </div>
+          <span class="yt-result-play-icon">${videoId === currentPlayingId ? '🔊' : '▶'}</span>
+        `;
+        el.addEventListener('click', () => {
+          ytBarInput.value = `https://www.youtube.com/watch?v=${videoId}`;
+          playVideoId(videoId, title);
+          closeResults();
+        });
+        ytResults.appendChild(el);
+      });
+    }
+
+    function playVideoId(videoId, label) {
+      currentPlayingId = videoId;
+      activateYoutubeMode(videoId);
+      if (inputYtUrl) inputYtUrl.value = `https://www.youtube.com/watch?v=${videoId}`;
+      ytBarClearBtn.style.display = 'flex';
+      ytBarPlayBtn.textContent = '⏸ ផ្អាក';
+    }
+
+    function closeResults() {
+      if (ytResults) ytResults.style.display = 'none';
+    }
+  }
+
   function generateAndDisplayLink(msg, imgSrc, ytId) {
     const baseLink = window.location.origin + window.location.pathname;
     const params = [];

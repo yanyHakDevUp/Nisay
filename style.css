@@ -1173,3 +1173,84 @@ body {
 }
 .yt-bar__clear:hover { background: rgba(255,255,255,0.28); }
 
+/* ── YouTube Search Wrap & Results ── */
+.yt-search-wrap {
+  position: relative;
+  margin-top: 14px;
+}
+.yt-search-wrap .yt-bar {
+  margin-top: 0;
+}
+.yt-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0; right: 0;
+  background: rgba(18, 10, 30, 0.96);
+  border: 1.5px solid rgba(255,255,255,0.15);
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  overflow: hidden;
+  z-index: 200;
+  max-height: 360px;
+  overflow-y: auto;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.55);
+  animation: slideDown 0.2s var(--ease);
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.yt-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s var(--ease);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.yt-result-item:last-child { border-bottom: none; }
+.yt-result-item:hover { background: rgba(255,255,255,0.09); }
+.yt-result-item.is-playing { background: rgba(255, 68, 68, 0.12); }
+.yt-result-thumb {
+  width: 72px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.08);
+}
+.yt-result-info {
+  flex: 1;
+  min-width: 0;
+}
+.yt-result-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  font-family: var(--font-ui);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.yt-result-channel {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.5);
+  font-family: var(--font-ui);
+  margin-top: 2px;
+}
+.yt-result-play-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.yt-result-item:hover .yt-result-play-icon,
+.yt-result-item.is-playing .yt-result-play-icon { opacity: 1; }
+.yt-results-loading {
+  text-align: center;
+  padding: 20px;
+  color: rgba(255,255,255,0.5);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+}
