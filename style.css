@@ -1075,3 +1075,39 @@ body {
   display: none !important;
 }
 
+/* ── Social Share Buttons ── */
+.share-social {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.share-social__label {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.6);
+  font-family: var(--font-khmer-body);
+  white-space: nowrap;
+}
+.share-social__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 50px;
+  font-size: 0.78rem;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  color: #ffffff;
+  text-decoration: none;
+  transition: transform 0.18s var(--ease), opacity 0.18s var(--ease), box-shadow 0.18s var(--ease);
+  cursor: pointer;
+}
+.share-social__btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.92;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+}
+.share-social__btn--telegram  { background: #2AABEE; }
+.share-social__btn--whatsapp  { background: #25D366; }
+.share-social__btn--messenger { background: linear-gradient(135deg, #0099FF, #A033FF); }

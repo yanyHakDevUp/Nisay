@@ -882,79 +882,65 @@
     });
   }
   function uploadImage(dataUrl, callback) {
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      const maxDim = 300; // 300x300 looks beautiful and crisp as album cover
-      let w = img.width;
-      let h = img.height;
-
-      // Crop to square
-      const size = Math.min(w, h);
-      canvas.width = maxDim;
-      canvas.height = maxDim;
-      const ctx = canvas.getContext('2d');
-
-      ctx.drawImage(
-        img,
-        (w - size) / 2,
-        (h - size) / 2,
-        size,
-        size,
-        0,
-        0,
-        maxDim,
-        maxDim
-      );
-
-      // Convert to Blob and upload to Pixeldrain
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          fallbackToBase64();
-          return;
-        }
-
-        const formData = new FormData();
-        formData.append('file', blob, 'couple.jpg');
-
-        fetch('https://pixeldrain.com/api/file', {
-          method: 'POST',
-          body: formData
-        })
-        .then(res => {
-          if (!res.ok) throw new Error('Upload failed');
-          return res.json();
-        })
-        .then(data => {
-          if (data.success && data.id) {
-            const directUrl = `https://pixeldrain.com/api/file/${data.id}`;
-            callback(directUrl);
-          } else {
-            fallbackToBase64();
-          }
-        })
-        .catch(() => {
-          fallbackToBase64();
-        });
-      }, 'image/jpeg', 0.82); // High quality JPEG!
-
-      function fallbackToBase64() {
-        // Fallback: compress down to a very small base64 string (90x90, 0.38 quality) to fit URL limits
-        const smallCanvas = document.createElement('canvas');
-        smallCanvas.width = 90;
-        smallCanvas.height = 90;
-        const smallCtx = smallCanvas.getContext('2d');
-        smallCtx.drawImage(canvas, 0, 0, 90, 90);
-        const base64Str = smallCanvas.toDataURL('image/jpeg', 0.38);
-        callback(base64Str);
+    // Convert the original dataUrl directly to a Blob — no resizing, full quality
+    dataUrlToBlob(dataUrl, (originalBlob) => {
+      if (!originalBlob) {
+        callback('');
+        return;
       }
-    };
 
-    img.onerror = function() {
-      callback('');
-    };
+      const formData = new FormData();
+      formData.append('file', originalBlob, 'couple.jpg');
 
-    img.src = dataUrl;
+      fetch('https://pixeldrain.com/api/file', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Upload failed');
+        return res.json();
+      })
+      .then(data => {
+        if (data.success && data.id) {
+          // Pixeldrain direct image URL
+          callback(`https://pixeldrain.com/api/file/${data.id}`);
+        } else {
+          fallbackCompressed();
+        }
+      })
+      .catch(() => {
+        fallbackCompressed();
+      });
+    });
+
+    // Emergency fallback: tiny compressed base64 that fits in a URL hash
+    function fallbackCompressed() {
+      const img = new Image();
+      img.onload = function() {
+        const c = document.createElement('canvas');
+        c.width = 90; c.height = 90;
+        const ctx = c.getContext('2d');
+        const size = Math.min(img.width, img.height);
+        ctx.drawImage(img, (img.width-size)/2, (img.height-size)/2, size, size, 0, 0, 90, 90);
+        callback(c.toDataURL('image/jpeg', 0.4));
+      };
+      img.onerror = () => callback('');
+      img.src = dataUrl;
+    }
+  }
+
+  // Convert a dataUrl string → Blob without any quality degradation
+  function dataUrlToBlob(dataUrl, callback) {
+    try {
+      const [header, base64] = dataUrl.split(',');
+      const mime = header.match(/:(.*?);/)[1];
+      const binary = atob(base64);
+      const array = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
+      callback(new Blob([array], { type: mime }));
+    } catch (e) {
+      callback(null);
+    }
   }
 
   function shortenUrlWithJsonp(longUrl, callback) {
@@ -991,20 +977,48 @@
 
     const hash = params.join('&');
     const fullLink = baseLink + (hash ? '#' + hash : '');
-    
+
     // Fallback: show the long URL first so something is always copyable
     resultLink.value = fullLink;
     shareResultWrap.style.display = 'block';
+    updateSocialBtns(fullLink, msg);
 
     showToast('កំពុងបង្កើតតំណភ្ជាប់ខ្លី... 🔗');
     shortenUrlWithJsonp(fullLink, (shortUrl) => {
-      if (shortUrl) {
-        resultLink.value = shortUrl;
-        showToast('បង្កើតតំណភ្ជាប់ខ្លីជោគជ័យ! 🎉');
-      } else {
-        showToast('បង្កើតតំណភ្ជាប់វែងជោគជ័យ! 🎉');
-      }
+      const finalUrl = shortUrl || fullLink;
+      resultLink.value = finalUrl;
+      updateSocialBtns(finalUrl, msg);
+      showToast(shortUrl ? 'បង្កើតតំណភ្ជាប់ខ្លីជោគជ័យ! 🎉' : 'បង្កើតតំណភ្ជាប់ជោគជ័យ! 🎉');
     });
+  }
+
+  function updateSocialBtns(url, msg) {
+    const text = msg
+      ? `💗 ${msg} — ស្តាប់មួយជាមួយគ្នា: ${url}`
+      : `💗 ស្តាប់បទស្នេហ៍នេះជាមួយគ្នា: ${url}`;
+
+    const telegramBtn = $('shareTelegramBtn');
+    const whatsappBtn = $('shareWhatsappBtn');
+    const messengerBtn = $('shareMessengerBtn');
+
+    if (telegramBtn) {
+      telegramBtn.href = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(msg ? `💗 ${msg}` : '💗 ស្តាប់បទស្នេហ៍នេះ')}`;
+    }
+    if (whatsappBtn) {
+      whatsappBtn.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    }
+    if (messengerBtn) {
+      // Messenger deep link — opens app on mobile, prompts to share on desktop
+      messengerBtn.href = `fb-messenger://share/?link=${encodeURIComponent(url)}`;
+      // Fallback: share via Facebook share dialog (works in browser)
+      messengerBtn.addEventListener('click', (e) => {
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (!isMobile) {
+          e.preventDefault();
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank', 'width=600,height=400');
+        }
+      }, { once: true });
+    }
   }
 
   function parseSharedLink() {
