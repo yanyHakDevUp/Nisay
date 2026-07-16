@@ -183,6 +183,10 @@
           <textarea id="inputMessage" placeholder="សរសេរសារផ្អែមល្ហែមនៅទីនេះ... (ឧទាហរណ៍៖ បងស្រលាញ់អូនខ្លាំងណាស់!)" rows="2"></textarea>
         </div>
         <div class="form-group">
+          <label for="inputYtUrl">លីងបទចម្រៀង YouTube / YouTube Song URL (Optional)</label>
+          <input type="text" id="inputYtUrl" placeholder="https://www.youtube.com/watch?v=..." />
+        </div>
+        <div class="form-group">
           <label>រូបថតគូស្នេហ៍ / Couple Photo</label>
           <div class="upload-dropzone" id="uploadZone">
             <input type="file" id="inputFile" accept="image/*" class="upload-dropzone__input" />
@@ -206,6 +210,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Hidden container for YouTube IFrame Player -->
+  <div id="ytPlayer" style="position: absolute; width: 1px; height: 1px; opacity: 0.01; pointer-events: none;"></div>
 
   <script src="script.js"></script>
 </body>

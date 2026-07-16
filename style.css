@@ -1056,3 +1056,22 @@ body {
   background: rgba(255, 255, 255, 0.3);
 }
 
+.form-group input[type="text"] {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.2s var(--ease);
+}
+.form-group input[type="text"]:focus {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.karaoke.is-hidden {
+  display: none !important;
+}
+
