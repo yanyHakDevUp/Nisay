@@ -886,48 +886,50 @@
         });
     });
   }
+  const IMGBB_KEY = '959077a93efc9ae9cf8b1df0332ee9d3';
+
   function uploadImage(dataUrl, callback) {
-    // Convert the original dataUrl directly to a Blob — no resizing, full quality
-    dataUrlToBlob(dataUrl, (originalBlob) => {
-      if (!originalBlob) {
-        callback('');
-        return;
-      }
+    // Extract raw base64 (strip the data:image/xxx;base64, prefix)
+    const base64 = dataUrl.split(',')[1];
+    if (!base64) { callback(''); return; }
 
-      const formData = new FormData();
-      formData.append('file', originalBlob, 'couple.jpg');
+    showToast('កំពុងបង្ហោះរូបភាព... ⏳');
 
-      fetch('https://pixeldrain.com/api/file', {
-        method: 'POST',
-        body: formData
-      })
-      .then(res => {
-        if (!res.ok) throw new Error('Upload failed');
-        return res.json();
-      })
-      .then(data => {
-        if (data.success && data.id) {
-          // Pixeldrain direct image URL
-          callback(`https://pixeldrain.com/api/file/${data.id}`);
-        } else {
-          fallbackCompressed();
-        }
-      })
-      .catch(() => {
+    const formData = new FormData();
+    formData.append('image', base64);
+
+    fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+      method: 'POST',
+      body: formData
+    })
+    .then(res => {
+      if (!res.ok) throw new Error('ImgBB upload failed');
+      return res.json();
+    })
+    .then(data => {
+      if (data.success && data.data && data.data.url) {
+        // Use the direct display URL — full resolution, permanent CDN
+        callback(data.data.display_url || data.data.url);
+      } else {
         fallbackCompressed();
-      });
+      }
+    })
+    .catch(() => {
+      fallbackCompressed();
     });
 
-    // Emergency fallback: tiny compressed base64 that fits in a URL hash
+    // Emergency fallback: tiny compressed base64 only if upload fails
     function fallbackCompressed() {
+      showToast('ការបង្ហោះបរាជ័យ — ប្រើរូបភាពតូច 😅');
       const img = new Image();
       img.onload = function() {
         const c = document.createElement('canvas');
-        c.width = 90; c.height = 90;
+        // Use a larger fallback: 400x400 at 0.85 quality
+        c.width = 400; c.height = 400;
         const ctx = c.getContext('2d');
         const size = Math.min(img.width, img.height);
-        ctx.drawImage(img, (img.width-size)/2, (img.height-size)/2, size, size, 0, 0, 90, 90);
-        callback(c.toDataURL('image/jpeg', 0.4));
+        ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, 400, 400);
+        callback(c.toDataURL('image/jpeg', 0.85));
       };
       img.onerror = () => callback('');
       img.src = dataUrl;
