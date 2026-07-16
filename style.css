@@ -1254,3 +1254,126 @@ body {
   font-family: var(--font-ui);
   font-size: 0.82rem;
 }
+
+/* =========================================================================
+   RESPONSIVE MOBILE APP LAYOUT (Native App Style)
+   ========================================================================= */
+@media (max-width: 500px) {
+  body, html {
+    height: 100dvh;
+    overflow: hidden;
+  }
+  body {
+    background-attachment: scroll; /* Performance boost */
+  }
+  
+  /* Make the app fill the screen like a mobile app */
+  .app {
+    max-width: 100%;
+    width: 100%;
+    height: 100dvh;
+    padding: 12px 14px 16px;
+    margin: 0;
+    justify-content: space-between;
+    transform: none !important;
+  }
+  
+  .app__header {
+    margin-bottom: 6px;
+    margin-top: 2px;
+  }
+  .app__title {
+    font-size: 1.15rem;
+  }
+  .app__subtitle {
+    font-size: 0.72rem;
+  }
+  
+  .theme-switcher {
+    margin-bottom: 10px;
+    padding: 4px 8px;
+    gap: 6px;
+  }
+  .theme-btn {
+    font-size: 0.65rem;
+    padding: 4px 8px;
+  }
+  
+  .sticker-container {
+    margin-bottom: 6px;
+    gap: 6px;
+  }
+  .sticker {
+    font-size: 0.62rem;
+    padding: 3px 6px;
+  }
+
+  /* Distribute card elements vertically to fill screen */
+  .player {
+    flex: 1;
+    border-radius: var(--radius-md);
+    padding: 14px 12px 12px;
+    gap: 10px;
+    justify-content: space-around;
+    max-height: calc(100% - 65px);
+  }
+  
+  /* Downscale visualizer and cover image to fit mobile */
+  .player__art-wrap {
+    height: 160px;
+  }
+  .wave-canvas {
+    width: 170px;
+    height: 170px;
+  }
+  .art-ring {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .song-info {
+    gap: 2px;
+    margin-bottom: 2px;
+  }
+  .song-info__title {
+    font-size: 1.05rem;
+  }
+  .song-info__artist {
+    font-size: 0.75rem;
+  }
+  
+  .controls {
+    gap: 12px;
+  }
+  .ctrl-btn {
+    width: 34px;
+    height: 34px;
+  }
+  .ctrl-btn--play {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .share-trigger-wrap {
+    margin-top: 2px;
+    width: 100%;
+  }
+  .share-trigger-btn {
+    font-size: 0.72rem;
+    padding: 9px;
+  }
+  
+  .app__footer {
+    padding-top: 6px;
+    margin: 0;
+  }
+  .app__footer p {
+    font-size: 0.62rem;
+    margin: 0;
+  }
+  
+  .yt-results {
+    max-height: 220px;
+  }
+}
+
